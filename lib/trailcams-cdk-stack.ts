@@ -1,16 +1,26 @@
-import * as cdk from 'aws-cdk-lib';
-import { Construct } from 'constructs';
-// import * as sqs from 'aws-cdk-lib/aws-sqs';
+import * as cdk from "aws-cdk-lib";
+import { ArnPrincipal } from "aws-cdk-lib/aws-iam";
+import { Construct } from "constructs";
+import { Constants } from "./constants";
+import { TrailcamsCdkLambdaHandler } from "./lambda/trailcams-cdk-lambda-handler";
+import { TrailcamsCdkS3Bucket } from "./s3/trailcams-cdk-s3-bucket";
 
 export class TrailcamsCdkStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
     super(scope, id, props);
 
-    // The code that defines your stack goes here
+    const emailAttahcmentHandler = new TrailcamsCdkLambdaHandler(
+      this,
+      "EmailAttachmentLambdaHandler",
+      "/../lambda/handler/email-attachment-handler.ts"
+    );
+    const emailGuardHandler = new TrailcamsCdkLambdaHandler(
+      this,
+      "EmailGuardHandler",
+      "/../lambda/handler/email-guard.ts"
+    );
 
-    // example resource
-    // const queue = new sqs.Queue(this, 'TrailcamsCdkQueue', {
-    //   visibilityTimeout: cdk.Duration.seconds(300)
-    // });
+    const bucket = new TrailcamsCdkS3Bucket(this, Constants.EMAIL_ATTACHMENT_BUCKET_NAME);
+    bucket.getBucket().grantReadWrite(new ArnPrincipal(emailAttahcmentHandler.getHandler().functionArn));
   }
 }
