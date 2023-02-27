@@ -7,7 +7,7 @@ export class TrailcamsCdkSESReceiptRules {
   private s3ReceiptRule: ReceiptRule;
 
   constructor(stack: Stack, ruleSetName: string, bucket: Bucket) {
-    const receiptRules: ReceiptRuleSet = new ReceiptRuleSet(stack, `trailcams-ses-receipt-ruleset-${ruleSetName}`, {
+    const receiptRules: ReceiptRuleSet = new ReceiptRuleSet(stack, ruleSetName, {
       receiptRuleSetName: ruleSetName,
       dropSpam: true,
     });
