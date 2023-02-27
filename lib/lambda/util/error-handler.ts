@@ -1,4 +1,4 @@
-export const errorUtil = {
+export const errorHandler = {
   handleError: (error: unknown) => {
     if (!(error instanceof Error)) {
       throw new Error("An unknown error occured.");

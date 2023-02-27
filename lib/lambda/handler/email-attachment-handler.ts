@@ -3,7 +3,7 @@ import { Handler } from "aws-lambda";
 import { AddressObject, simpleParser } from "mailparser";
 import { Constants } from "../../constants";
 import { emailValidator } from "../util/email-validator";
-import { errorUtil } from "../util/error-util";
+import { errorHandler } from "../util/error-handler";
 
 /**
  *
@@ -22,7 +22,7 @@ export const handler: Handler = async (event, context) => {
   const s3 = new S3Client({});
   const record = event.Records[0];
   const objectKey = record.ses.mail.messageId as string;
-  const bucket = Constants.EMAIL_ATTACHMENT_BUCKET_NAME;
+  const bucket = Constants.EMAIL_BUCKET_NAME;
 
   const request = new GetObjectCommand({
     Bucket: bucket,
@@ -34,7 +34,7 @@ export const handler: Handler = async (event, context) => {
   try {
     data = await s3.send(request);
   } catch (error) {
-    errorUtil.handleError(error);
+    errorHandler.handleError(error);
   }
 
   if (!data) {
@@ -47,7 +47,7 @@ export const handler: Handler = async (event, context) => {
     const bodyAsString = await data.Body?.transformToString("UTF-8");
     email = await simpleParser(emailValidator.validateStringBody(bodyAsString));
   } catch (error) {
-    errorUtil.handleError(error);
+    errorHandler.handleError(error);
   }
 
   email = emailValidator.validateParsedMail(email);
@@ -83,7 +83,7 @@ export const handler: Handler = async (event, context) => {
   try {
     await s3.send(putRequest);
   } catch (error) {
-    errorUtil.handleError(error);
+    errorHandler.handleError(error);
   }
 
   return { statusCode: 200, body: { putKey } };

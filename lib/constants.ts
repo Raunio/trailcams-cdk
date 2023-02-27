@@ -1,4 +1,4 @@
 export const Constants = {
-  EMAIL_ATTACHMENT_BUCKET_NAME: "trailcams-email-attachments",
-  SES_DOMAIN: "trailcams.com",
+  EMAIL_BUCKET_NAME: "trailcams-emails",
+  SES_DOMAIN: "trailcams.click",
 };

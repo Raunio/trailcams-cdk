@@ -4,6 +4,7 @@ import { Construct } from "constructs";
 import { Constants } from "./constants";
 import { TrailcamsCdkLambdaHandler } from "./lambda/trailcams-cdk-lambda-handler";
 import { TrailcamsCdkS3Bucket } from "./s3/trailcams-cdk-s3-bucket";
+import { TrailcamsCdkSESReceiptRules } from "./ses/trailcams-cd-ses-receipt-rules";
 
 export class TrailcamsCdkStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
@@ -20,7 +21,9 @@ export class TrailcamsCdkStack extends cdk.Stack {
       "/../lambda/handler/email-guard.ts"
     );
 
-    const bucket = new TrailcamsCdkS3Bucket(this, Constants.EMAIL_ATTACHMENT_BUCKET_NAME);
-    bucket.getBucket().grantReadWrite(new ArnPrincipal(emailAttahcmentHandler.getHandler().functionArn));
+    const emailBucket = new TrailcamsCdkS3Bucket(this, Constants.EMAIL_BUCKET_NAME);
+    emailBucket.getBucket().grantReadWrite(emailAttahcmentHandler.getHandler());
+
+    const SESReceiptRules = new TrailcamsCdkSESReceiptRules(this, "trailcams-receipt-rules", emailBucket.getBucket());
   }
 }
