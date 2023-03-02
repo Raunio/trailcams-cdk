@@ -5,6 +5,8 @@ import { LambdaDestination } from "aws-cdk-lib/aws-s3-notifications";
 import { Construct } from "constructs";
 import { Constants } from "./constants";
 import { TrailcamsCdkLambdaHandler } from "./lambda/trailcams-cdk-lambda-handler";
+import { TrailcamsCdkRekognition } from "./rekognition/trailcams-cdk-rekognition";
+import { TrailcamsCdkRekognitionPolicyStatements } from "./rekognition/trailcams-cdk-rekognition-policy-statements";
 import { TrailcamsCdkS3Bucket } from "./s3/trailcams-cdk-s3-bucket";
 import { TrailcamsCdkSESReceiptRules } from "./ses/trailcams-cd-ses-receipt-rules";
 
@@ -48,5 +50,19 @@ export class TrailcamsCdkStack extends cdk.Stack {
       emailBucket.getBucket(),
       emailGuardHandler.getHandler()
     );
+
+    const rekognitionDatasetBucket = new TrailcamsCdkS3Bucket(this, "trailcams-rekognition-dataset");
+    const rekognitionPolicies = new TrailcamsCdkRekognitionPolicyStatements(rekognitionDatasetBucket.getBucket());
+
+    rekognitionDatasetBucket.getBucket().addToResourcePolicy(rekognitionPolicies.getPolicies().S3BucketAccess);
+    rekognitionDatasetBucket.getBucket().addToResourcePolicy(rekognitionPolicies.getPolicies().S3ObjectAccess);
+
+    const rekgPutObj = rekognitionPolicies.getPolicies().S3PutObject;
+    rekgPutObj.addCondition("StringEquals", {
+      "s3:x-amz-acl": "bucket-owner-full-control",
+    });
+    rekognitionDatasetBucket.getBucket().addToResourcePolicy(rekgPutObj);
+
+    const rekognition = new TrailcamsCdkRekognition(this, "trailcams-custom-labels-project");
   }
 }
