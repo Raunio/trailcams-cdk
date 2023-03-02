@@ -1,5 +1,12 @@
 import * as cdk from "aws-cdk-lib";
-import { AccountRootPrincipal, ArnPrincipal, Effect, PolicyStatement, ServicePrincipal } from "aws-cdk-lib/aws-iam";
+import {
+  AccountRootPrincipal,
+  ArnPrincipal,
+  Effect,
+  Policy,
+  PolicyStatement,
+  ServicePrincipal,
+} from "aws-cdk-lib/aws-iam";
 import { EventType } from "aws-cdk-lib/aws-s3";
 import { LambdaDestination } from "aws-cdk-lib/aws-s3-notifications";
 import { Construct } from "constructs";
@@ -23,6 +30,11 @@ export class TrailcamsCdkStack extends cdk.Stack {
       this,
       "EmailGuardHandler",
       "/../lambda/handler/email-guard.ts"
+    );
+    const thumbnailHandler = new TrailcamsCdkLambdaHandler(
+      this,
+      "ThumbnailCreatorHandler",
+      "/../lambda/handler/thumbnail-creator-handler.ts"
     );
 
     // TODO: Refactor

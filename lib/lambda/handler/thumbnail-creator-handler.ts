@@ -1,11 +1,10 @@
 import { GetObjectCommand, PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
 import { Handler } from "aws-lambda";
-import * as sharp from "sharp";
+import sharp = require("sharp");
 
 /* eslint-disable  @typescript-eslint/no-unused-vars */
 export const handler: Handler = async (event, context) => {
   const s3 = new S3Client({});
-
   const bucket = event.Records[0].s3.bucket.name as string;
   const sourceKey = decodeURIComponent(event.Records[0].s3.object.key.replace(/\+/g, " "));
   const typeMatch = sourceKey.match(/\.([^.]*)$/);

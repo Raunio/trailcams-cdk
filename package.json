@@ -38,6 +38,7 @@
     "aws-cdk-lib": "2.63.1",
     "constructs": "^10.0.0",
     "mailparser": "^3.6.3",
+    "sharp": "^0.31.3",
     "source-map-support": "^0.5.21"
   }
 }
