@@ -1,5 +1,7 @@
 import * as cdk from "aws-cdk-lib";
 import { AccountRootPrincipal, ArnPrincipal, Effect, PolicyStatement, ServicePrincipal } from "aws-cdk-lib/aws-iam";
+import { EventType } from "aws-cdk-lib/aws-s3";
+import { LambdaDestination } from "aws-cdk-lib/aws-s3-notifications";
 import { Construct } from "constructs";
 import { Constants } from "./constants";
 import { TrailcamsCdkLambdaHandler } from "./lambda/trailcams-cdk-lambda-handler";
@@ -21,8 +23,12 @@ export class TrailcamsCdkStack extends cdk.Stack {
       "/../lambda/handler/email-guard.ts"
     );
 
-    const emailBucket = new TrailcamsCdkS3Bucket(this, Constants.EMAIL_BUCKET_NAME);
+    // TODO: Refactor
+    const emailBucket = new TrailcamsCdkS3Bucket(this, Constants.S3.EMAIL_BUCKET_NAME);
     emailBucket.getBucket().grantReadWrite(emailAttahcmentHandler.getHandler());
+    emailBucket
+      .getBucket()
+      .addEventNotification(EventType.OBJECT_CREATED, new LambdaDestination(emailAttahcmentHandler.getHandler()));
 
     const s3AllowSESPut = new PolicyStatement({
       sid: "AllowSESPut",
@@ -36,6 +42,11 @@ export class TrailcamsCdkStack extends cdk.Stack {
 
     emailBucket.getBucket().addToResourcePolicy(s3AllowSESPut);
 
-    const SESReceiptRules = new TrailcamsCdkSESReceiptRules(this, "trailcams-receipt-rules", emailBucket.getBucket());
+    const SESReceiptRules = new TrailcamsCdkSESReceiptRules(
+      this,
+      "trailcams-receipt-rules",
+      emailBucket.getBucket(),
+      emailGuardHandler.getHandler()
+    );
   }
 }

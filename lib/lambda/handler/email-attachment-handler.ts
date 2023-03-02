@@ -19,10 +19,12 @@ import { errorHandler } from "../util/error-handler";
  */
 /* eslint-disable  @typescript-eslint/no-unused-vars */
 export const handler: Handler = async (event, context) => {
+  console.log(JSON.stringify(event));
+
   const s3 = new S3Client({});
   const record = event.Records[0];
-  const objectKey = record.ses.mail.messageId as string;
-  const bucket = Constants.EMAIL_BUCKET_NAME;
+  const objectKey = record.s3.object.key as string;
+  const bucket = record.s3.bucket.name as string;
 
   const request = new GetObjectCommand({
     Bucket: bucket,
