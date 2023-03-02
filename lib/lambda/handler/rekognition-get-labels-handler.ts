@@ -3,6 +3,7 @@ import { Handler } from "aws-lambda";
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import { RekognitionClient, DetectLabelsCommand } from "@aws-sdk/client-rekognition";
 
+/* eslint-disable  @typescript-eslint/no-unused-vars */
 export const handler: Handler = async (event, context) => {
   console.log(JSON.stringify(event));
 
