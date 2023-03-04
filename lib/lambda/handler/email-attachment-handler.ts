@@ -1,4 +1,5 @@
 import { GetObjectCommand, PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
+import { GetParameterCommand, SSMClient } from "@aws-sdk/client-ssm";
 import { Handler } from "aws-lambda";
 import { AddressObject, simpleParser } from "mailparser";
 import { Constants } from "../../constants";
@@ -17,11 +18,13 @@ import { errorHandler } from "../util/error-handler";
  * @returns {Object} object - API Gateway Lambda Proxy Output Format
  *
  */
+const s3 = new S3Client({});
+const ssm = new SSMClient({});
+
 /* eslint-disable  @typescript-eslint/no-unused-vars */
 export const handler: Handler = async (event, context) => {
   console.log(JSON.stringify(event));
 
-  const s3 = new S3Client({});
   const record = event.Records[0];
   const objectKey = record.s3.object.key as string;
   const bucket = record.s3.bucket.name as string;
@@ -56,7 +59,7 @@ export const handler: Handler = async (event, context) => {
 
   const attachments = email.attachments;
   if (!attachments) {
-    throw new Error("Email has no attachments.");
+    errorHandler.handleError(new Error("Email has no attachments."));
   }
 
   const toAddress = (email.to as AddressObject).value[0].address as string;
@@ -65,8 +68,21 @@ export const handler: Handler = async (event, context) => {
   const fromAddress = (email.from as AddressObject).value[0].address as string;
   const cameraName = fromAddress.split("@")[0];
 
+  let userBucketPrefix = "trailcams-user-bucket-";
+
+  /*try {
+    const getParam = await ssm.send(new GetParameterCommand({ Name: Constants.SES.USER_BUCKET_PARAM_NAME }));
+    userBucketPrefix = getParam.Parameter?.Value as string;
+    if (!userBucketPrefix) {
+      throw new Error(`Parameter ${Constants.SES.USER_BUCKET_PARAM_NAME} is not defined!`);
+    }
+  } catch (error) {
+    errorHandler.handleError(error);
+  }*/
+
   const putKey = `${cameraName}/` + attachments[0].filename;
-  const putBucket = "trailcams-user-bucket-" + username;
+  const putBucket = `${userBucketPrefix}${username}`;
+
   const putRequest = new PutObjectCommand({
     Bucket: putBucket,
     Key: putKey,

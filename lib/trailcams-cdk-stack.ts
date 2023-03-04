@@ -1,3 +1,4 @@
+import { Permission } from "@aws-sdk/client-s3";
 import * as cdk from "aws-cdk-lib";
 import {
   AccountRootPrincipal,
@@ -26,6 +27,15 @@ export class TrailcamsCdkStack extends cdk.Stack {
       "EmailAttachmentLambdaHandler",
       "/../lambda/handler/email-attachment-handler.ts"
     );
+
+    emailAttahcmentHandler.getHandler().addToRolePolicy(
+      new PolicyStatement({
+        effect: Effect.ALLOW,
+        actions: ["s3:PutObject"],
+        resources: [Constants.S3.USER_BUCKET_OBJECTS_ARN_TEMPLATE, Constants.S3.USER_BUCKET_ARN_TEMPLATE],
+      })
+    );
+
     const emailGuardHandler = new TrailcamsCdkLambdaHandler(
       this,
       "EmailGuardHandler",
@@ -36,6 +46,29 @@ export class TrailcamsCdkStack extends cdk.Stack {
       "ThumbnailCreatorHandler",
       "/../lambda/handler/thumbnail-creator-handler.ts"
     );
+
+    thumbnailHandler.getHandler().addToRolePolicy(
+      new PolicyStatement({
+        effect: Effect.ALLOW,
+        actions: ["s3:GetObject"],
+        resources: [Constants.S3.USER_BUCKET_OBJECTS_ARN_TEMPLATE],
+      })
+    );
+
+    thumbnailHandler.getHandler().addToRolePolicy(
+      new PolicyStatement({
+        effect: Effect.ALLOW,
+        actions: ["s3:PutObject"],
+        resources: [Constants.S3.USER_THUMBNAIL_BUCKET_OBJECTS_ARN_TEMPLATE],
+      })
+    );
+
+    thumbnailHandler.getHandler().addPermission("s3-premission", {
+      principal: new ServicePrincipal("s3.amazonaws.com"),
+      action: "lambda:InvokeFunction",
+      sourceArn: Constants.S3.USER_BUCKET_ARN_TEMPLATE,
+      sourceAccount: this.account,
+    });
 
     // TODO: Refactor
     const emailBucket = new TrailcamsCdkS3Bucket(this, Constants.S3.EMAIL_BUCKET_NAME);
