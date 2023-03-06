@@ -6,11 +6,14 @@ import path = require("path");
 export class TrailcamsCdkLambdaHandler {
   private handler: NodejsFunction;
 
-  constructor(stack: Stack, handlerName: string, handlerPath: string) {
-    const handler = new NodejsFunction(stack, handlerName, {
+  constructor(stack: Stack, props: LambdaProps) {
+    const handler = new NodejsFunction(stack, props.handlerName, {
       runtime: Runtime.NODEJS_18_X,
-      entry: path.join(__dirname, handlerPath),
+      entry: path.join(__dirname, props.handlerPath),
       handler: "handler",
+      /*bundling: {
+        nodeModules: props.nodeModules,
+      },*/
     });
 
     const myFunctionUrl = handler.addFunctionUrl({
@@ -20,7 +23,7 @@ export class TrailcamsCdkLambdaHandler {
       },
     });
 
-    const cfnOutput = new CfnOutput(stack, `${handlerName}URL`, {
+    const cfnOutput = new CfnOutput(stack, `${props.handlerName}URL`, {
       value: myFunctionUrl.url,
     });
 
@@ -30,4 +33,10 @@ export class TrailcamsCdkLambdaHandler {
   public getHandler(): NodejsFunction {
     return this.handler;
   }
+}
+
+export interface LambdaProps {
+  readonly handlerName: string;
+  readonly handlerPath: string;
+  readonly nodeModules?: string[];
 }

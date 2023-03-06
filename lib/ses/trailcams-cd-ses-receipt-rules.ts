@@ -8,9 +8,9 @@ import { Constants } from "../constants";
 export class TrailcamsCdkSESReceiptRules {
   private s3ReceiptRule: ReceiptRule;
 
-  constructor(stack: Stack, ruleSetName: string, bucket: Bucket, emailGuardFunction: IFunction) {
-    const receiptRules: ReceiptRuleSet = new ReceiptRuleSet(stack, ruleSetName, {
-      receiptRuleSetName: ruleSetName,
+  constructor(stack: Stack, props: ReceiptRuleProps) {
+    const receiptRules: ReceiptRuleSet = new ReceiptRuleSet(stack, props.ruleSetName, {
+      receiptRuleSetName: props.ruleSetName,
       dropSpam: true,
     });
 
@@ -19,10 +19,10 @@ export class TrailcamsCdkSESReceiptRules {
       scanEnabled: true,
       actions: [
         new aws_ses_actions.Lambda({
-          function: emailGuardFunction,
+          function: props.emailGuardFunction,
           invocationType: LambdaInvocationType.REQUEST_RESPONSE,
         }),
-        new aws_ses_actions.S3({ bucket: bucket }),
+        new aws_ses_actions.S3({ bucket: props.bucket }),
       ],
       recipients: [Constants.SES.SES_DOMAIN, `.${Constants.SES.SES_DOMAIN}`],
     });
@@ -31,4 +31,10 @@ export class TrailcamsCdkSESReceiptRules {
   public getS3ReceiptRule(): ReceiptRule {
     return this.s3ReceiptRule;
   }
+}
+
+export interface ReceiptRuleProps {
+  readonly ruleSetName: string;
+  readonly bucket: Bucket;
+  readonly emailGuardFunction: IFunction;
 }
